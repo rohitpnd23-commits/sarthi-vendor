@@ -1,23 +1,32 @@
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sarthi Vendor</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><style>*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}body{background:#0f0f0f;color:#fff}.card{background:#1a1a1a;border-radius:16px;padding:16px;margin:16px}input{width:100%;padding:12px;border-radius:10px;border:none;background:#2a2a2a;color:#fff;margin:6px 0}.btn{width:100%;padding:12px;background:#ffb26b;border:none;border-radius:10px;font-weight:700;margin-top:10px}img{width:100%;border-radius:12px;margin-top:10px;max-height:250px;object-fit:cover;display:none}.box{background:#1e1e1e;border-radius:12px;padding:10px;margin:10px 16px;display:flex;gap:10px}.box img{width:60px;height:60px;display:block}</style></head><body>
-<div style="padding:16px;background:#1a1a1a"><b>🏪 Sarthi Vendor - FINAL</b></div>
-<div class="card"><input id="pname" placeholder="Product Name (Logo)"><input id="pprice" type="number" placeholder="Price"><input id="pstock" type="number" placeholder="Stock"><input type="file" id="pfile" accept="image/*"><img id="prev"><button class="btn" onclick="upload()">Upload 🚀</button><p id="msg" style="text-align:center;margin-top:10px;color:#4ade80"></p></div><div id="list"></div>
+<div style="padding:16px;background:#1a1a1a"><b>🏪 Sarthi Vendor - FIXED</b></div>
+<div class="card"><input id="pname" placeholder="Name"><input id="pprice" type="number" placeholder="Price"><input id="pstock" type="number" placeholder="Stock"><input type="file" id="pfile" accept="image/*"><img id="prev"><button class="btn" id="upBtn" onclick="upload()">Upload 🚀</button><p id="msg" style="text-align:center;margin-top:10px;color:#4ade80"></p></div><div id="list"></div>
 <script>
 const supa = supabase.createClient("https://nmjrsalsaehopxtyafef.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tanJzYWxzYWVhb3B4dHlhZmVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNzE3MjEsImV4cCI6MjEwNjk0NzcyMX0.oRbBm1Vew7DgM88hSDmhL9aie0m_ORkxPmChUXyckEQ");
-pfile.onchange=()=>{let f=pfile.files[0];prev.src=URL.createObjectURL(f);prev.style.display='block'};
+let compressedBlob=null;
+pfile.onchange=async()=>{
+ let f=pfile.files[0]; if(!f)return;
+ msg.innerText='Compressing...';
+ let img=new Image(); img.src=URL.createObjectURL(f);
+ await new Promise(r=>img.onload=r);
+ let c=document.createElement('canvas'); let max=800;
+ let w=img.width,h=img.height; if(w>h){if(w>max){h*=max/w;w=max}}else{if(h>max){w*=max/h;h=max}}
+ c.width=w;c.height=h; c.getContext('2d').drawImage(img,0,0,w,h);
+ c.toBlob(b=>{compressedBlob=b; prev.src=URL.createObjectURL(b); prev.style.display='block'; msg.innerText='Ready: '+Math.round(b.size/1024)+'KB'},'image/jpeg',0.7);
+};
 async function upload(){
- let f=pfile.files[0]; if(!pname.value||!f)return alert('Name + Photo bharo');
- msg.innerText='Uploading...';
+ if(!pname.value||!compressedBlob)return alert('Name + Photo chuno, 2 sec ruko');
+ upBtn.disabled=true; msg.innerText='Uploading...';
  try{
-  let fileName=Date.now()+'_'+f.name;
-  let {error:upErr}=await supa.storage.from('product-images').upload(fileName,f);
+  let fileName=Date.now()+'.jpg';
+  let {error:upErr}=await supa.storage.from('product-images').upload(fileName,compressedBlob);
   if(upErr)throw upErr;
-  let {data:urlData}=supa.storage.from('product-images').getPublicUrl(fileName);
-  let {error}=await supa.from('products').insert([{name:pname.value,price:Number(pprice.value),stock:Number(pstock.value),image:urlData.publicUrl,vendor:'Ramesh Traders'}]);
+  let {data}=supa.storage.from('product-images').getPublicUrl(fileName);
+  let {error}=await supa.from('products').insert([{name:pname.value,price:Number(pprice.value),stock:Number(pstock.value),image:data.publicUrl,vendor:'Ramesh Traders'}]);
   if(error)throw error;
-  msg.innerText='✅ LIVE! Customer me dikhega';
-  load();
- }catch(e){msg.innerText='Error: '+e.message}
+  msg.innerText='✅ LIVE! Ho gaya!'; load();
+ }catch(e){msg.innerText='Error: '+e.message; console.error(e)}finally{upBtn.disabled=false}
 }
 async function load(){let {data}=await supa.from('products').select('*').order('id',{ascending:false});list.innerHTML=(data||[]).map(p=>`<div class="box"><img src="${p.image}"><div><b>${p.name}</b><br>₹${p.price}</div></div>`).join('');}
 load();
