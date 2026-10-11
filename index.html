@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sarthi Vendor</title>
+<link rel="manifest" href="manifest.json">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}body{background:#0f0f0f;color:#fff}
+.login{display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
+.card{background:#1a1a1a;border-radius:20px;padding:25px;width:100%;max-width:400px}
+input,select{width:100%;padding:12px;border-radius:10px;border:none;background:#2a2a2a;color:#fff;margin:8px 0}
+.btn{width:100%;padding:12px;background:#ffb26b;border:none;border-radius:10px;font-weight:700;margin-top:10px}
+.hidden{display:none}
+.header{padding:16px;background:#1a1a1a;display:flex;justify-content:space-between;position:sticky;top:0}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#1a1a1a;display:flex;justify-content:space-around;padding:10px 0;border-top:1px solid #333}
+.nav span{color:#888;font-size:11px;text-align:center;cursor:pointer;padding:5px 15px}.on{color:#ffb26b!important}
+.page{padding-bottom:80px}
+.box{background:#1e1e1e;border-radius:16px;padding:16px;margin:10px 16px}
+.tag{padding:4px 10px;border-radius:20px;font-size:12px}
+</style>
+</head>
+<body>
+<div id="login" class="login"><div class="card">
+<h2 style="text-align:center;margin-bottom:15px">🏪 Sarthi Vendor Panel</h2>
+<input id="email" placeholder="vendor@sarthi.com">
+<input id="pass" type="password" placeholder="vendor123">
+<button class="btn" onclick="login()">Login as Vendor</button>
+<p style="text-align:center;color:#888;font-size:12px;margin-top:10px">Demo: vendor@sarthi.com / vendor123</p>
+<p id="msg" style="color:#ff6b6b;text-align:center"></p>
+</div></div>
+
+<div id="app" class="hidden">
+<div class="header"><div><b>Vendor: Ramesh Traders</b><br><small style="color:#888">ID: VEN-102</small></div><button onclick="logout()" style="background:#2a2a2a;color:#fff;border:none;padding:6px 12px;border-radius:8px">Logout</button></div>
+
+<div id="p-home" class="page">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px">
+<div class="box" style="margin:0"><small style="color:#888">My Products</small><h2>24</h2><small style="color:#4ade80">+2 new</small></div>
+<div class="box" style="margin:0"><small style="color:#888">Earnings</small><h2>₹12,430</h2><small style="color:#4ade80">+15%</small></div>
+<div class="box" style="margin:0;grid-column:1/3"><small style="color:#888">Pending Orders to Ship</small><h2>7 Orders</h2><small style="color:#ffb26b">2 need urgent packing</small></div>
+</div>
+<h3 style="padding:10px 16px">Recent Orders for You</h3>
+<div class="box"><b>#ORD-1024 - Silk Kurta (2 pcs)</b><br><small style="color:#888">Customer: Rohit - ₹1,499</small><br><button style="margin-top:8px;background:#4ade80;border:none;padding:6px 12px;border-radius:8px">Accept & Pack</button></div>
+</div>
+
+<div id="p-products" class="page hidden">
+<h3 style="padding:16px">My Products</h3>
+<div style="padding:0 16px"><input id="pname" placeholder="Product Name"><input id="pprice" placeholder="Price ₹"><input id="pstock" placeholder="Stock"><button class="btn" onclick="addP()">+ Add New Product</button></div>
+<div id="plist" style="margin-top:10px"><div class="box"><div style="display:flex;justify-content:space-between"><b>Silk Kurta</b><span class="tag" style="background:#4ade80;color:#000">Approved</span></div><small style="color:#888">Stock: 45 | Sales: 120</small></div></div>
+</div>
+
+<div id="p-orders" class="page hidden">
+<h3 style="padding:16px">Orders to Fulfill</h3>
+<div class="box"><b>#ORD-1023 Cotton T-Shirt</b><br><small>Ship by today 6pm</small><br><div style="margin-top:8px"><button style="background:#ffb26b;border:none;padding:6px 12px;border-radius:8px">Mark Shipped</button></div></div>
+</div>
+
+<div id="p-earn" class="page hidden">
+<h3 style="padding:16px">Earnings</h3>
+<div class="box"><h2>₹12,430 This Month</h2><small style="color:#888">Last payout: ₹8,000 on 1 Oct</small></div>
+<div class="box"><small>Commission 10% cut by Sarthi</small><br><b>Net Payable: ₹11,187</b></div>
+</div>
+
+<div class="nav">
+<span id="n-home" class="on" onclick="tab('home')">🏠<br>Home</span>
+<span id="n-products" onclick="tab('products')">👕<br>Products</span>
+<span id="n-orders" onclick="tab('orders')">📦<br>Orders</span>
+<span id="n-earn" onclick="tab('earn')">💰<br>Earnings</span>
+</div>
+</div>
+
+<script>
+function login(){if(email.value=='vendor@sarthi.com'&&pass.value=='vendor123'){localStorage.setItem('vlogin','1');show()}else msg.innerText='Wrong! Use vendor@sarthi.com / vendor123'}
+function show(){loginDiv=document.getElementById('login');loginDiv.classList.add('hidden');app.classList.remove('hidden')}
+if(localStorage.getItem('vlogin'))show()
+function logout(){localStorage.removeItem('vlogin');location.reload()}
+function tab(t){document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));document.getElementById('p-'+t).classList.remove('hidden');document.querySelectorAll('.nav span').forEach(s=>s.classList.remove('on'));document.getElementById('n-'+t).classList.add('on')}
+function addP(){let n=pname.value;if(!n)return alert('Name likho');let d=document.createElement('div');d.className='box';d.innerHTML='<div style="display:flex;justify-content:space-between"><b>'+n+'</b><span class="tag" style="background:#ffb26b;color:#000">Pending Approval</span></div><small style="color:#888">Price: ₹'+pprice.value+'</small>';plist.prepend(d);pname.value='';alert('Sent for Admin Approval!')}
+</script>
+</body>
+</html>
