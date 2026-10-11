@@ -1,94 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sarthi Vendor</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}body{background:#0f0f0f;color:#fff}
-.card{background:#1a1a1a;border-radius:20px;padding:20px;margin:16px}
-input{width:100%;padding:12px;border-radius:10px;border:none;background:#2a2a2a;color:#fff;margin:6px 0}
-.btn{width:100%;padding:12px;background:#ffb26b;border:none;border-radius:10px;font-weight:700;margin-top:10px;cursor:pointer}
-.hidden{display:none}.header{padding:16px;background:#1a1a1a;display:flex;justify-content:space-between;position:sticky;top:0}
-.nav{position:fixed;bottom:0;left:0;right:0;background:#1a1a1a;display:flex;justify-content:space-around;padding:10px 0;border-top:1px solid #333}
-.nav span{color:#888;font-size:11px;text-align:center;cursor:pointer;padding:5px 15px}.on{color:#ffb26b!important}
-.page{padding-bottom:80px}.box{background:#1e1e1e;border-radius:16px;padding:12px;margin:10px 16px;display:flex;gap:12px;align-items:center}
-.box img{width:60px;height:60px;border-radius:10px;object-fit:cover}
-#preview{width:100%;max-height:200px;border-radius:12px;margin-top:10px;object-fit:cover;display:none}
-</style>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}body{background:#0f0f0f;color:#fff}.card{background:#1a1a1a;border-radius:16px;padding:16px;margin:16px}input{width:100%;padding:12px;border-radius:10px;border:none;background:#2a2a2a;color:#fff;margin:6px 0}.btn{width:100%;padding:12px;background:#ffb26b;border:none;border-radius:10px;font-weight:700;margin-top:10px}img{width:100%;border-radius:12px;margin-top:10px;max-height:250px;object-fit:cover;display:none}.box{background:#1e1e1e;border-radius:12px;padding:10px;margin:10px 16px;display:flex;gap:10px}.box img{width:60px;height:60px;display:block}</style>
 </head>
 <body>
-<div class="header"><b>🏪 Vendor Panel</b><button onclick="logout()" style="background:#2a2a2a;color:#fff;border:none;padding:6px 12px;border-radius:8px">Logout</button></div>
-
+<div style="padding:16px;background:#1a1a1a"><b>🏪 Sarthi Vendor - LIVE DB</b></div>
 <div class="card">
-<h3>Add New Product with Photo</h3>
-<input id="pname" placeholder="Product Name: Silk Kurta">
-<input id="pprice" placeholder="Price: 1499" type="number">
-<input id="pstock" placeholder="Stock: 45" type="number">
-<input type="file" id="pfile" accept="image/*" onchange="previewImg()">
-<img id="preview">
-<button class="btn" onclick="addProduct()">Upload to Customer App →</button>
-<p id="status" style="text-align:center;margin-top:10px;color:#4ade80"></p>
+<h3>Add Product with Photo</h3>
+<input id="pname" placeholder="Product Name">
+<input id="pprice" type="number" placeholder="Price">
+<input id="pstock" type="number" placeholder="Stock">
+<input type="file" id="pfile" accept="image/*" onchange="preview()">
+<img id="prev">
+<button class="btn" onclick="upload()">Upload to Customer App 🚀</button>
+<p id="msg" style="text-align:center;margin-top:10px;color:#4ade80"></p>
 </div>
-
-<div style="padding:10px 16px"><b>My Uploaded Products</b></div>
-<div id="plist"></div>
-
-<div style="height:80px"></div>
+<div id="list"></div>
 <script>
-// FIREBASE CONFIG - Apna free wala dal do
-const firebaseConfig = {
-  apiKey: "AIzaSyDummyKeyForDemo",
-  authDomain: "sarthi-shop.firebaseapp.com",
-  projectId: "sarthi-shop-demo"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-let base64Img = "";
-function previewImg(){
-  const file = document.getElementById('pfile').files[0];
-  const reader = new FileReader();
-  reader.onload = e => {
-    base64Img = e.target.result;
-    document.getElementById('preview').src = base64Img;
-    document.getElementById('preview').style.display='block';
-  };
-  reader.readAsDataURL(file);
+const SUPA_URL="https://nmjrsalsaehopxtyafef.supabase.co";
+const SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tanJzYWxzYWVhb3B4dHlhZmVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNzE3MjEsImV4cCI6MjEwNjk0NzcyMX0.oRbBm1Vew7DgM88hSDmhL9aie0m_ORkxPmChUXyckEQ";
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+let b64="";
+function preview(){let f=pfile.files[0];let r=new FileReader();r.onload=e=>{b64=e.target.result;prev.src=b64;prev.style.display='block'};r.readAsDataURL(f)}
+async function upload(){
+ if(!pname.value||!pprice.value||!b64)return alert('Name, Price, Photo bharo');
+ msg.innerText='Uploading...';
+ let {error} = await supa.from('products').insert([{name:pname.value, price:Number(pprice.value), stock:Number(pstock.value), image:b64, vendor:'Ramesh Traders'}]);
+ if(error){msg.innerText='Error: '+error.message}else{msg.innerText='✅ LIVE on Customer App!';pname.value='';pprice.value='';pstock.value='';load()}
 }
-
-async function addProduct(){
-  const name = pname.value, price = pprice.value, stock = pstock.value;
-  if(!name ||!price ||!base64Img) return alert('Name, Price, Photo bharo!');
-  status.innerText = "Uploading...";
-
-  // Local save bhi + Firebase me bhi
-  let products = JSON.parse(localStorage.getItem('sarthi_products')||'[]');
-  let prod = {id:Date.now(), name, price, stock, image: base64Img, vendor: 'Ramesh Traders', time: new Date().toLocaleString()};
-  products.unshift(prod);
-  localStorage.setItem('sarthi_products', JSON.stringify(products));
-
-  // Firebase try (agar config sahi hai toh)
-  try{ await db.collection('products').add(prod); }catch(e){ console.log('Firebase demo mode, local saved'); }
-
-  status.innerText = "✅ Live on Customer App!";
-  pname.value='';pprice.value='';pstock.value='';pfile.value='';base64Img='';
-  loadProducts();
+async function load(){
+ let {data} = await supa.from('products').select('*').order('id',{ascending:false});
+ list.innerHTML = (data||[]).map(p=>`<div class="box"><img src="${p.image}"><div><b>${p.name}</b><br>₹${p.price} • Stock ${p.stock}<br><small style="color:#4ade80">Live</small></div></div>`).join('');
 }
-
-function loadProducts(){
-  let products = JSON.parse(localStorage.getItem('sarthi_products')||'[]');
-  plist.innerHTML = products.map(p=>`
-    <div class="box">
-      <img src="${p.image}">
-      <div><b>${p.name}</b><br><small>₹${p.price} • Stock ${p.stock}</small><br><small style="color:#4ade80">Live on Customer App</small></div>
-    </div>
-  `).join('');
-}
-loadProducts();
-function logout(){location.reload()}
+load();
 </script>
 </body>
 </html>
